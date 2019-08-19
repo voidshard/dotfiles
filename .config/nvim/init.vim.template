@@ -1,0 +1,142 @@
+" -- template --
+
+call plug#begin('~/.vim/plugged')
+
+" colours
+Plug 'chriskempson/base16-vim'
+
+" fuzzy file find
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
+
+" 
+Plug 'hdima/python-syntax'
+Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }                              
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+Plug 'zchee/deoplete-jedi' 
+Plug 'zchee/deoplete-go', { 'do': 'make'}
+Plug 'zchee/deoplete-zsh'
+
+Plug 'tpope/vim-fugitive'
+
+" vim-airline
+" Enhanced statusline
+" https://github.com/vim-airline/vim-airline
+Plug 'vim-airline/vim-airline'
+" https://github.com/vim-airline/vim-airline-themes
+Plug 'vim-airline/vim-airline-themes'
+
+" git change indication
+Plug 'airblade/vim-gitgutter'
+
+" Snippets
+Plug 'SirVer/ultisnips'
+Plug 'honza/vim-snippets'
+
+" highlight the word under the cursor
+Plug 'RRethy/vim-illuminate'
+
+Plug 'scrooloose/nerdtree'
+
+" fancy icons
+Plug 'ryanoasis/vim-devicons'
+
+" super undo powers
+Plug 'mbbill/undotree'
+
+
+call plug#end()
+
+
+
+let g:ghpr_github_auth_token = {
+        \ 'github.com': '7cb03751c7bcad5dd685642ec4cf4ef03f85c291',
+        \ }
+
+
+" set leader to space key
+let mapleader="\<SPACE>"
+
+" Configure undo tree
+nnoremap <leader>u :UndotreeToggle<cr>
+
+if has("persistent_undo")
+    set undodir="/home/augustus/.undodir"
+    set undofile
+endif
+
+" Open nerdtree
+map <C-z> :NERDTreeToggle<CR>
+
+" Tet showmatch           " Show matching brackets.
+set formatoptions+=o    " Continue comment marker in new lines.
+set expandtab           " Insert spaces when TAB is pressed.
+set tabstop=4           " Render TABs using this many spaces.
+set shiftwidth=4        " Indentation amount for < and > commands.
+
+" misc
+set cursorline 
+set splitright
+
+" UltiSnips
+let g:UltiSnipsExpandTrigger="<C-j>"
+let g:UltiSnipsJumpForwardTrigger="<C-j>"
+let g:UltiSnipsJumpBackwardTrigger="<C-k>"
+
+" nerd tree devicons font
+set guifont=DroidSansMono\ Nerd\ Font\ 11
+
+" always search forward with n and backward with N
+nnoremap <expr> n  'Nn'[v:searchforward]
+nnoremap <expr> N  'nN'[v:searchforward]<Paste>
+
+" shortcuts / key remaps 
+nnoremap <C-x> :FZF<cr>
+let g:fzf_history_dir = '~/.local/share/fzf-history'
+nmap ; :Buffers<cr>
+nmap <leader>e :Tags<cr>
+nmap <leader>r :Files<cr>
+command! -bang -nargs=? -complete=dir HFiles
+  \ call fzf#vim#files(<q-args>, {'source': 'ag --hidden --ignore .git -g ""'}, <bang>0)
+nmap <leader>i :HFiles<cr>
+nmap <leader>l :Lines<cr>
+nmap <leader>a :Ag<cr>
+nmap <leader>h :History<cr>
+command! CmdHist call fzf#vim#command_history({'right': '40'})
+command! QHist call fzf#vim#search_history({'right': '40'})
+" nmap <c-[> <c-[>:redraw!<cr>
+
+nnoremap <C-f> :buffers<cr>
+nnoremap <C-t> :vsplit<cr>
+nnoremap <C-c> :Ag<cr>
+
+" file type recognition
+filetype on
+filetype plugin on
+filetype indent on
+
+" syntax highlighting
+syntax on
+
+" airline 
+let g:airline#extensions#tabline#enabled = 2
+let g:airline#extensions#tabline#fnamemod = ':t'
+let g:airline#extensions#tabline#left_sep = ' '
+let g:airline#extensions#tabline#left_alt_sep = '|'
+let g:airline#extensions#tabline#right_sep = ' '
+let g:airline#extensions#tabline#right_alt_sep = '|'
+let g:airline_left_sep = ' '
+let g:airline_left_alt_sep = '|'
+let g:airline_right_sep = ' '
+let g:airline_right_alt_sep = '|'
+
+
+" colour
+set termguicolors
+syntax on
+hi normal guibg=none ctermbg=none
+
+" -- end template --
+
+
+
