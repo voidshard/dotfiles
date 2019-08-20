@@ -47,13 +47,6 @@ Plug 'mbbill/undotree'
 
 call plug#end()
 
-
-
-let g:ghpr_github_auth_token = {
-        \ 'github.com': '7cb03751c7bcad5dd685642ec4cf4ef03f85c291',
-        \ }
-
-
 " set leader to space key
 let mapleader="\<SPACE>"
 
