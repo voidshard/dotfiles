@@ -4,6 +4,7 @@ alias xs=cd
 alias kls=ls
 alias l=ls
 alias d='date "+%Y%m%d"'
+alias dw=`date "+%Y-w%W-"`
 alias CD=cd
 alias Cd=cd
 alias lcd=cd
@@ -29,16 +30,10 @@ alias compton_restart='pkill compton ; nohup compton &'
 alias ds='docker ps'
 alias mutt='neomutt'
 alias mail='mbsync -a'
+alias cx='cd `git rev-parse --show-toplevel`'
 
 # vim
-alias vi='envsubst < /home/augustus/.config/nvim/init.vim.template > /home/augustus/.config/nvim/init.vim ; cat /home/augustus/.config/nvim/python.vim >> /home/augustus/.config/nvim/init.vim ; nvim'
-alias vim='envsubst < /home/augustus/.config/nvim/init.vim.template > /home/augustus/.config/nvim/init.vim ; cat /home/augustus/.config/nvim/python.vim >> /home/augustus/.config/nvim/init.vim ; nvim'
-alias govim='envsubst < /home/augustus/.config/nvim/init.vim.template > /home/augustus/.config/nvim/init.vim ; cat /home/augustus/.config/nvim/go.vim >> /home/augustus/.config/nvim/init.vim ; nvim'
-
-song () {
-    echo youtube-dl -ci --extract-audio --audio-format mp3 --audio-quality 0 -o '/home/augustus/Music/%(title)s.%(ext)s' --restrict-filenames $1
-    youtube-dl -ci --extract-audio --audio-format mp3 --audio-quality 0 -o '/home/augustus/Music/%(title)s.%(ext)s' --restrict-filenames $1
-}
+alias vim='nvim'
 
 ddie () {
 	# kill the most recently launched container
