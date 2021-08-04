@@ -7,6 +7,13 @@
   "coc.preferences.formatOnSaveFiletypes": [],
 
   "languageserver": {
+    "please": {
+      "filetypes": ["please"],
+      "command": "plz",
+      "args": [ "tool","lps" ],
+      "rootPatterns": [".plzconfig"],
+      "requireRootPattern": true
+    },
    "python": {
     "command": "python",
     "args": [

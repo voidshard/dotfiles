@@ -1,0 +1,23 @@
+snippet iass "import testify assert"
+import (
+  "testing"
+
+  "github.com/stretchr/testify/assert"
+)
+endsnippet
+
+snippet ftest "func test"
+func Test(t *testing.T) {
+    cases := []struct{
+        Name string
+    }{
+        {},
+    }
+
+    for _, tt := range cases {
+        t.Run(tt.Name, func(t *testing.T) {
+	    
+        })
+    }
+}
+endsnippet
