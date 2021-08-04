@@ -1,7 +1,10 @@
+alias wd='cd ~/code/core3/cloud/services/cloud-info'
+alias cleanvim='rm -f ~/.local/share/nvim/swap/*'
 alias dokcer='docker'
 alias ll='ls -latr'
 alias xs=cd
 alias kls=ls
+alias kk='ls -latr'
 alias l=ls
 alias d='date "+%Y%m%d"'
 alias dw=`date "+%Y-w%W-"`
@@ -18,22 +21,24 @@ alias tmpbar='cat /dev/stdin > ~/bar'
 alias dmseg='dmesg'
 alias grep='grep --color=auto'
 alias xrander='xrandr'
+alias gti='git'
 alias pip3.6='python3.6 -m pip $1'
-alias monodevelop='flatpak run com.xamarin.MonoDevelop'
 alias tmp='vim `tempfile`'
 alias rmpyc='find ./ -type f -name "*.pyc" -exec rm -v {} \;'
 alias docker-start='sudo service docker start ; sudo setenforce 0'
 alias docker-stop='sudo service docker stop ; sudo setenforce 1'
 alias gs='git status'
+alias gb='git branch'
 alias kick_comp='pkill compton && compton &'
 alias compton_restart='pkill compton ; nohup compton &'
 alias ds='docker ps'
 alias mutt='neomutt'
 alias mail='mbsync -a'
 alias cx='cd `git rev-parse --show-toplevel`'
-
-# vim
+alias vc='vim ~/.config/nvim/init.vim'
+alias dcm='docker-compose'
 alias vim='nvim'
+alias k='kubectl'
 
 ddie () {
 	# kill the most recently launched container
@@ -63,29 +68,6 @@ dc () {
 
 dn () {
 	docker network ls | grep -v "NETWORK" | grep -i $* | awk '{print $1}'
-}
-
-dcm(){
-   if [[ $1 = "up" ]]; then
-        # if it's a docker-compose 'up' command, auto add docker-compose 'down' variant
-        docker-compose ${@:1} && echo "--stopping--" && docker-compose down
-   elif [[ $1 = "run" ]]; then	
-        # if it's a docker-compose 'run' command, auto add docker-compose 'down' variant
-        docker-compose ${@:1} && echo "--stopping--" && docker-compose down
-   else
-        docker-compose ${@:1}
-   fi
-}
-dmc(){
-   if [[ $1 = "up" ]]; then
-        # if it's a docker-compose 'up' command, auto add docker-compose 'down' variant
-        docker-compose ${@:1} && echo "--stopping--" && docker-compose down
-   elif [[ $1 = "run" ]]; then	
-        # if it's a docker-compose 'run' command, auto add docker-compose 'down' variant
-        docker-compose ${@:1} && echo "--stopping--" && docker-compose down
-   else
-        docker-compose ${@:1}
-   fi
 }
 
 listify () {
