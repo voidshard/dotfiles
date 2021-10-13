@@ -28,52 +28,10 @@ alias docker-start='sudo service docker start ; sudo setenforce 0'
 alias docker-stop='sudo service docker stop ; sudo setenforce 1'
 alias gs='git status'
 alias gb='git branch'
-alias kick_comp='pkill compton && compton &'
 alias compton_restart='pkill compton ; nohup compton &'
 alias ds='docker ps'
-alias mutt='neomutt'
-alias mail='mbsync -a'
 alias cx='cd `git rev-parse --show-toplevel`'
 alias vc='vim ~/.config/nvim/init.vim'
-alias dcm='docker-compose'
 alias vim='nvim'
 alias k='kubectl'
-
-ddie () {
-	# kill the most recently launched container
-	docker stop `docker ps | head -n 2 | tail -n 1 | awk '{print $1}'`
-}
-
-dclean() {
-    # delete stopped containers
-    docker rm $(docker ps -a -q);
-    # delete dangling images
-    docker rmi $(docker images -q -f dangling=true);
-    docker volume prune; 
-}
-
-dinspect () {
-	# inspect the last container
-	docker inspect `docker ps -a | head -n 2 | tail -n 1 | awk '{print $1}'` | less
-}
-
-di () {
-	docker images | grep -v REPOSITORY | grep -i $* | awk '{print $3}'
-}
-
-dc () {
-	docker ps -a | grep -v "CONTAINER ID" | grep -i $* | awk '{print $1}'
-}
-
-dn () {
-	docker network ls | grep -v "NETWORK" | grep -i $* | awk '{print $1}'
-}
-
-listify () {
-    cat $1 | cut -d ',' -f 1  | awk '{print "\""$1"\","}' | tr '\n' ' ' | awk '{print "["$0"]"}'
-}
-
-tuplify () {
-    cat $1 | grep . | awk '{print "(\""$1"\", \""$2"\")"}' | tr '\n' ',' | awk '{print "["$0"]"}'
-}
 
