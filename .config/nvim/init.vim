@@ -112,6 +112,9 @@ nnoremap <C-f> :buffers<cr>
 nnoremap <C-t> :vsplit<cr>
 nnoremap <C-c> :Ag<cr>
 
+" auto complete on <return> rather than <C-y>
+inoremap <expr> <cr> coc#pum#visible() ? coc#_select_confirm() : "\<CR>"
+
 " file type recognition
 filetype on
 filetype plugin on
