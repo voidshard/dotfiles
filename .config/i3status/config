@@ -9,6 +9,7 @@ order += "disk /"
 order += "disk /home"
 order += "wireless _first_"
 order += "volume master"
+order += "battery 0"
 order += "tztime local"
 wireless  _first_ {
         format_up = "W: %ip"
@@ -24,7 +25,7 @@ load {
         format = "%1min %5min %15min"
 }
 disk "/" {
-  format = "Used / %percentage_used"
+  format = "/ %percentage_used"
   separator = false
 }
 disk "/home" {
@@ -32,9 +33,13 @@ disk "/home" {
   separator = false
 }
 volume master {
-        format = "♪: %volume"
+        format = "♫: %volume"
         format_muted = "♪: muted (%volume)"
         device = "default"
         mixer = "Master"
         mixer_idx = 0
+}
+battery 0 {
+    format = "🔌: %percentage %remaining"
+    path = "/sys/class/power_supply/BAT0/uevent"
 }

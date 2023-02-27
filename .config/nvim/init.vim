@@ -44,7 +44,7 @@ Plug 'mhinz/vim-startify'
 Plug 'vim-airline/vim-airline'  " vim-airline/vim-airline
 Plug 'vim-airline/vim-airline-themes'  " vim-airline-themes
 Plug 'airblade/vim-gitgutter'  " git change information
-Plug 'tpope/vim-fugitive'  " various git functions
+" Plug 'tpope/vim-fugitive'  " various git functions
 Plug 'RRethy/vim-illuminate'  " highlight work under cursor
 
 " fancy icons & filebrowser
@@ -93,7 +93,7 @@ set guifont=DroidSansMono\ Nerd\ Font\ 11
 nnoremap <expr> n  'Nn'[v:searchforward]
 nnoremap <expr> N  'nN'[v:searchforward]<Paste>
 
-" shortcuts / key remaps 
+" shortcuts / key remaps
 nnoremap <C-x> :FZF<cr>
 let g:fzf_history_dir = '~/.local/share/fzf-history'
 nmap ; :Buffers<cr>
@@ -112,9 +112,6 @@ nnoremap <C-f> :buffers<cr>
 nnoremap <C-t> :vsplit<cr>
 nnoremap <C-c> :Ag<cr>
 
-" auto complete on <return> rather than <C-y>
-inoremap <expr> <cr> coc#pum#visible() ? coc#_select_confirm() : "\<CR>"
-
 " file type recognition
 filetype on
 filetype plugin on
@@ -123,7 +120,7 @@ filetype indent on
 " syntax highlighting
 syntax on
 
-" airline 
+" airline
 " let g:airline#extensions#tabline#enabled = 2
 let g:airline#extensions#tabline#enabled = 0
 let g:airline#extensions#tabline#fnamemod = ':t'
@@ -175,7 +172,7 @@ autocmd BufEnter BUILD :setlocal filetype=py
 " https://github.com/tcncloud/wollemi#vim
 autocmd BufWritePost *.go silent exec '!wollemi --log fatal gofmt' shellescape(expand('%:h'), 1)
 
-" bind coc 
+" bind coc
 autocmd Filetype go command! -bang A call go#alternate#Switch(<bang>0, 'edit')
 autocmd Filetype go command! -bang AV call go#alternate#Switch(<bang>0, 'vsplit')
 autocmd Filetype go command! -bang AS call go#alternate#Switch(<bang>0, 'split')
@@ -203,4 +200,5 @@ let g:go_highlight_function_calls = 1
 let g:go_highlight_function_parameters = 1
 let g:go_highlight_functions = 1
 let g:go_highlight_operators = 1
+
 
