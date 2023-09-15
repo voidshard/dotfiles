@@ -33,11 +33,6 @@ kcc() {
     kubectl config set-context --current --namespace=$1
 }
 
-song () {
-    echo youtube-dl -ci --extract-audio --audio-format mp3 --audio-quality 0 -o '/home/augustus/Music/%(title)s.%(ext)s' --restrict-filenames $1
-    youtube-dl -ci --extract-audio --audio-format mp3 --audio-quality 0 -o '/home/augustus/Music/%(title)s.%(ext)s' --restrict-filenames $1
-}
-
 ddie () {
 	# kill the most recently launched container
 	docker stop `docker ps | head -n 2 | tail -n 1 | awk '{print $1}'`
@@ -67,35 +62,3 @@ dc () {
 dn () {
 	docker network ls | grep -v "NETWORK" | grep -i $* | awk '{print $1}'
 }
-
-dcm(){
-   if [[ $1 = "up" ]]; then
-        # if it's a docker-compose 'up' command, auto add docker-compose 'down' variant
-        docker-compose ${@:1} && echo "--stopping--" && docker-compose down
-   elif [[ $1 = "run" ]]; then	
-        # if it's a docker-compose 'run' command, auto add docker-compose 'down' variant
-        docker-compose ${@:1} && echo "--stopping--" && docker-compose down
-   else
-        docker-compose ${@:1}
-   fi
-}
-dmc(){
-   if [[ $1 = "up" ]]; then
-        # if it's a docker-compose 'up' command, auto add docker-compose 'down' variant
-        docker-compose ${@:1} && echo "--stopping--" && docker-compose down
-   elif [[ $1 = "run" ]]; then	
-        # if it's a docker-compose 'run' command, auto add docker-compose 'down' variant
-        docker-compose ${@:1} && echo "--stopping--" && docker-compose down
-   else
-        docker-compose ${@:1}
-   fi
-}
-
-listify () {
-    cat $1 | cut -d ',' -f 1  | awk '{print "\""$1"\","}' | tr '\n' ' ' | awk '{print "["$0"]"}'
-}
-
-tuplify () {
-    cat $1 | grep . | awk '{print "(\""$1"\", \""$2"\")"}' | tr '\n' ',' | awk '{print "["$0"]"}'
-}
-
