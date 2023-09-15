@@ -43,7 +43,7 @@ Plug 'mhinz/vim-startify'
 " Enhanced status line & helpful indications
 Plug 'vim-airline/vim-airline'  " vim-airline/vim-airline
 Plug 'vim-airline/vim-airline-themes'  " vim-airline-themes
-Plug 'airblade/vim-gitgutter'  " git change information
+" Plug 'airblade/vim-gitgutter'  " git change information
 " Plug 'tpope/vim-fugitive'  " various git functions
 Plug 'RRethy/vim-illuminate'  " highlight work under cursor
 
