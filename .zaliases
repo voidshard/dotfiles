@@ -30,7 +30,22 @@ alias k='kubectl'
 alias vim='nvim'
 
 kcc() {
-    kubectl config set-context --current --namespace=$1
+    if [ "$#" -ne 2 ]; then
+      kubectl config get-contexts --no-headers | sort
+    elif [[ $1 == "-" ]]; then
+      kubectl config set-context --current --namespace=$2
+    else
+      CTX=`kubectl config get-contexts | grep eks | tr '*' ' ' | awk '{print $1}' | grep "/$1\$"`
+      if [[ $CTX == "" ]]; then
+        echo "Context '"$1"' not found. Try:"
+        kcc
+      else
+        kubectl config use-context $CTX
+        if [[ $2 != "-" ]]; then
+          kubectl config set-context --current --namespace=$2
+        fi
+      fi
+    fi
 }
 
 ddie () {
