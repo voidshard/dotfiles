@@ -51,6 +51,7 @@ source ~/.zaliases
 
 PS1='%B%F{green}%n%F{cyan}@%F{red}%m %F{cyan}%D %T %F{magenta}%/ %(?.%F{green}✓.%F{red}⨯)%F{reset} > '
 
+export PATH=~/go/bin:/usr/local/go/bin:$PATH
 export EDITOR=nvim
 export PAGER=less
 export TERM=xterm-256color

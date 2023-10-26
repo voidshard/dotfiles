@@ -22,12 +22,16 @@ alias rmpyc='find ./ -type f -name "*.pyc" -exec rm -v {} \;'
 alias docker-start='sudo service docker start ; sudo setenforce 0'
 alias docker-stop='sudo service docker stop ; sudo setenforce 1'
 alias gs='git status'
-alias compton_restart='pkill compton ; nohup compton &'
 alias ds='docker ps'
 alias display='gpicview'
 alias eog='gpicview'
 alias k='kubectl'
 alias vim='nvim'
+alias enable_monitor='xrander --output DP-3 --mode 2560x1440  --primary --above eDP-1'
+
+proj() {
+    cd "/home/$USER/go/src/github.com/voidshard/"$1
+}
 
 kcc() {
     if [ "$#" -ne 2 ]; then
@@ -48,6 +52,11 @@ kcc() {
     fi
 }
 
+song () {
+    # requires lux github.com/iawia002/lux and ffmpeg
+    ~/.lux.py --audio-only --output-dir ~/Music $1
+}
+
 ddie () {
 	# kill the most recently launched container
 	docker stop `docker ps | head -n 2 | tail -n 1 | awk '{print $1}'`
@@ -55,7 +64,7 @@ ddie () {
 
 dclean() {
     # delete stopped containers
-    docker rm $(docker ps -a -q);
+    docker rm $(docker ps -a | grep Exited | awk '{print $1}');
     # delete dangling images
     docker rmi $(docker images -q -f dangling=true);
     docker volume prune; 
@@ -77,3 +86,35 @@ dc () {
 dn () {
 	docker network ls | grep -v "NETWORK" | grep -i $* | awk '{print $1}'
 }
+
+dcm(){
+   if [[ $1 = "up" ]]; then
+        # if it's a docker-compose 'up' command, auto add docker-compose 'down' variant
+        docker-compose ${@:1} && echo "--stopping--" && docker-compose down
+   elif [[ $1 = "run" ]]; then	
+        # if it's a docker-compose 'run' command, auto add docker-compose 'down' variant
+        docker-compose ${@:1} && echo "--stopping--" && docker-compose down
+   else
+        docker-compose ${@:1}
+   fi
+}
+dmc(){
+   if [[ $1 = "up" ]]; then
+        # if it's a docker-compose 'up' command, auto add docker-compose 'down' variant
+        docker-compose ${@:1} && echo "--stopping--" && docker-compose down
+   elif [[ $1 = "run" ]]; then	
+        # if it's a docker-compose 'run' command, auto add docker-compose 'down' variant
+        docker-compose ${@:1} && echo "--stopping--" && docker-compose down
+   else
+        docker-compose ${@:1}
+   fi
+}
+
+listify () {
+    cat $1 | cut -d ',' -f 1  | awk '{print "\""$1"\","}' | tr '\n' ' ' | awk '{print "["$0"]"}'
+}
+
+tuplify () {
+    cat $1 | grep . | awk '{print "(\""$1"\", \""$2"\")"}' | tr '\n' ',' | awk '{print "["$0"]"}'
+}
+
