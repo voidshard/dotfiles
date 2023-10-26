@@ -9,7 +9,7 @@ cp -vr base/* ~/
 cp -vr base/.* ~/ 
 
 # random stuff
-sudo pacman --needed -S fzf curl git htop nodejs cargo go dbeaver sqlitebrowser tiled neovim zsh discord docker docker-compose gpicview dive jq nmap tmux thunderbird python-pyx python-neovim
+sudo pacman --needed -S fzf curl git htop nodejs cargo go dbeaver sqlitebrowser tiled neovim zsh discord docker docker-compose gpicview dive jq nmap tmux thunderbird python-pyx python-neovim pass steam
 
 # alacritty (https://github.com/alacritty/alacritty/blob/master/INSTALL.md#arch-linux)
 sudo pacman --needed -S cmake freetype2 fontconfig pkg-config make libxcb libxkbcommon python
