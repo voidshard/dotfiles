@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Arch Linux setup script
+# - copies in configs
+# - installs packages
+#
+# Nb. for printer setup `hp-setup`
+
 set -eux
 
 dir="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -9,7 +15,7 @@ cp -vr base/* ~/
 cp -vr base/.* ~/ 
 
 # random stuff
-sudo pacman --needed -S fzf curl git htop nodejs cargo go dbeaver sqlitebrowser tiled neovim zsh discord docker docker-compose gpicview dive jq nmap tmux thunderbird python-pyx python-neovim pass steam python3-pip the_silver_searcher python-lsp-server bash-language-server
+sudo pacman --needed -S fzf curl git htop nodejs cargo go dbeaver sqlitebrowser tiled neovim zsh discord docker docker-compose gpicview dive jq nmap tmux thunderbird python-pyx python-neovim pass steam python3-pip the_silver_searcher python-lsp-server bash-language-server gimp
 
 # alacritty (https://github.com/alacritty/alacritty/blob/master/INSTALL.md#arch-linux)
 sudo pacman --needed -S cmake freetype2 fontconfig pkg-config make libxcb libxkbcommon python
