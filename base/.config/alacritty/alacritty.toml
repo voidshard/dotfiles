@@ -1,0 +1,74 @@
+# Configuration for Alacritty, the GPU enhanced terminal emulator.
+#
+# TOML, not YAML: alacritty deprecated alacritty.yml in 0.13 and dropped it entirely in
+# 0.14, silently ignoring the file. Reference: `man 5 alacritty`
+# https://alacritty.org/config-alacritty.html
+
+[env]
+TERM = "xterm-256color"
+
+[window]
+opacity = 0.9
+decorations = "None"
+dynamic_title = true
+padding = { x = 0, y = 0 }
+
+[scrolling]
+# 100000 is the upper limit alacritty enforces
+history = 100000
+multiplier = 100
+
+[font]
+# the nerd font the setup scripts install, for the LazyVim/waybar glyphs
+normal = { family = "FiraCode Nerd Font", style = "Regular" }
+size = 6.0
+
+[colors]
+draw_bold_text_with_bright_colors = true
+
+# Material Theme
+[colors.primary]
+background = "#1e282d"
+foreground = "#c4c7d1"
+
+[colors.normal]
+black   = "#666666"
+red     = "#eb606b"
+green   = "#c3e88d"
+yellow  = "#f7eb95"
+blue    = "#80cbc4"
+magenta = "#ff2f90"
+cyan    = "#aeddff"
+white   = "#ffffff"
+
+[colors.bright]
+black   = "#ff262b"
+red     = "#eb606b"
+green   = "#c3e88d"
+yellow  = "#f7eb95"
+blue    = "#7dc6bf"
+magenta = "#6c71c4"
+cyan    = "#35434d"
+white   = "#ffffff"
+
+[selection]
+semantic_escape_chars = ",│`|:\"' ()[]{}<>"
+save_to_clipboard = false
+
+[cursor]
+style = "Block"
+unfocused_hollow = true
+
+[mouse]
+hide_when_typing = false
+bindings = [{ mouse = "Middle", action = "PasteSelection" }]
+
+# `terminal.shell` is left unset so alacritty follows $SHELL; this config is shared with
+# macOS, where zsh is not at /usr/bin/zsh
+
+[keyboard]
+# set explicitly because macOS defaults these to Command, not Control|Shift
+bindings = [
+  { key = "V", mods = "Control|Shift", action = "Paste" },
+  { key = "C", mods = "Control|Shift", action = "Copy" },
+]

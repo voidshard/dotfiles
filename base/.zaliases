@@ -1,0 +1,286 @@
+alias ll='ls -latr'
+alias xs=cd
+alias kls=ls
+alias l=ls
+alias d='date "+%Y%m%d"'
+alias CD=cd
+alias Cd=cd
+alias lcd=cd
+alias cd..='cd ..'
+alias scd=cd
+alias xs=cd
+alias vf=cd
+alias ls='ls -CF --color=tty'
+alias tmpfoo='cat /dev/stdin > ~/foo'
+alias tmpbar='cat /dev/stdin > ~/bar'
+alias dmseg='dmesg'
+alias grep='grep --color=auto'
+alias gs='git status'
+alias k='kubectl'
+alias vim='nvim'
+alias po='podman'
+alias debugpodnet='kubectl run debug-net --rm -i --tty --image nicolaka/netshoot'
+alias tfmt="terragrunt hclfmt && terraform fmt --recursive"
+
+cx() {
+  cd `git rev-parse --show-toplevel`
+}
+
+ssm-ssh() {
+  if [ "$#" -eq 1 ]; then
+   _ssm-ssh $1
+  else
+   if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
+     echo "Usage: ssm-ssh <node-ip or instance-id> <optional ports to forward>"
+     return 1
+   fi
+   PORT="$2"
+   LOCAL_PORT="${3:-$PORT}"
+   _ssm-tunnel $1 $2 $3
+  fi
+}
+
+_ssm-ssh() {
+  if [ "$#" -ne 1 ]; then
+   echo "Usage: ssm-ssh <node-ip or instance-id>"
+   return 1
+  fi
+  TARGET="$1"
+  # Check if input is an instance ID (starts with "i-")
+  if [[ "$TARGET" == i-* ]]; then
+   INSTANCE_ID="$TARGET"
+  else
+   # Assume it's an IP address and look up the instance ID
+   INSTANCE_ID=$(aws ec2 describe-instances \
+     --filters "Name=private-ip-address,Values=$TARGET" \
+     --query "Reservations[].Instances[].InstanceId" \
+     --output text)
+   if [ -z "$INSTANCE_ID" ]; then
+     echo "Instance ID not found for IP $TARGET"
+     return 1
+   fi
+  fi
+  echo "Launching SSM shell to $TARGET (Instance ID: $INSTANCE_ID)..."
+  aws ssm start-session \
+   --target "$INSTANCE_ID" \
+   --document-name SSM-SessionManagerRunShell 
+}
+
+instance-id() {
+  # must be an array: "${@}" assigned to a scalar joins the args into one string
+  TARGETS=("$@")
+  for TARGET in "${TARGETS[@]}"; do
+   if [[ "$TARGET" == i-* ]]; then
+     echo $TARGET "->" $TARGET
+   else
+     IDS=$(aws ec2 describe-instances \
+       --filters "Name=private-ip-address,Values=$TARGET" \
+       --query "Reservations[].Instances[].InstanceId" \
+       --output text)
+     if [ -z "$IDS" ]; then
+       echo "No instance found for IP $TARGET"
+       return 1
+     fi
+     echo $TARGET "->" $IDS
+   fi
+  done
+}
+
+ssm-cmd() {
+  if [ "$#" -lt 2 ]; then
+   echo "Usage: ssm-cmd <instance-id|ip> [<instance-id|ip> ...] <command>"
+   return 1
+  fi
+
+  COMMAND="${@: -1}"
+  TARGETS=("${@:1:$(( $# - 1 ))}")
+
+  echo "Running SSM Command: "$COMMAND
+  echo "On Targets: "$TARGETS
+
+  INSTANCE_IDS=()
+  for TARGET in "${TARGETS[@]}"; do
+   if [[ "$TARGET" == i-* ]]; then
+     INSTANCE_IDS+=("$TARGET")
+   else
+     IDS=$(aws ec2 describe-instances \
+       --filters "Name=private-ip-address,Values=$TARGET" \
+       --query "Reservations[].Instances[].InstanceId" \
+       --output text)
+     if [ -z "$IDS" ]; then
+       echo "No instance found for IP $TARGET"
+       return 1
+     fi
+     INSTANCE_IDS+=($IDS)
+   fi
+  done
+
+  echo aws ssm send-command \
+   --instance-ids "${INSTANCE_IDS[@]}" \
+   --document-name "AWS-RunShellScript" \
+   --comment "AdHoc" \
+   --parameters commands=\"$COMMAND\" \
+   --output text
+
+  COMMAND_ID=$(aws ssm send-command \
+   --instance-ids "${INSTANCE_IDS[@]}" \
+   --document-name AWS-RunShellScript \
+   --comment AdHoc \
+   --parameters commands=\"$COMMAND\" \
+   --output json | jq -r '.Command.CommandId')
+
+  if [ -z "$COMMAND_ID" ] || [ "$COMMAND_ID" = "null" ]; then
+   echo "Failed to start SSM command"
+   return 1
+  fi
+
+  echo "Command started"
+  echo "Command ID: $COMMAND_ID"
+  echo
+
+  declare -A DONE
+  REMAINING=${#INSTANCE_IDS[@]}
+
+  echo "Polling command results..."
+  echo
+
+  # loop through instances and print out the command output
+  while [ "$REMAINING" -gt 0 ]; do
+   for INSTANCE_ID in "${INSTANCE_IDS[@]}"; do
+     [[ -n "${DONE[$INSTANCE_ID]}" ]] && continue
+
+     INVOCATION_JSON=$(aws ssm get-command-invocation \
+       --command-id "$COMMAND_ID" \
+       --instance-id "$INSTANCE_ID" \
+       --output json 2>/dev/null)
+
+     STATUS=$(jq -r '.Status' <<<"$INVOCATION_JSON")
+
+     case "$STATUS" in
+       Success|Failed|Cancelled|TimedOut)
+         echo "----- $INSTANCE_ID ($STATUS) -----"
+         jq -r '.StandardOutputContent // empty' <<<"$INVOCATION_JSON"
+         jq -r '.StandardErrorContent  // empty' <<<"$INVOCATION_JSON" >&2
+         echo
+         DONE[$INSTANCE_ID]=1
+         REMAINING=$(( REMAINING - 1 ))
+         ;;
+       Pending|InProgress|Delayed)
+         # still running
+         ;;
+       *)
+         # invocation not ready yet (race condition just after send-command)
+         ;;
+     esac
+   done
+
+   [ "$REMAINING" -gt 0 ] && sleep 2
+  done
+}
+
+_ssm-tunnel() {
+  if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
+     echo "Usage: ssm-tunnel <node-ip or instance-id> <remote-port> [local-port]"
+     return 1
+  fi
+  TARGET="$1"
+  PORT="$2"
+  LOCAL_PORT="${3:-$PORT}"  # Use third argument if provided, otherwise default to PORT
+  # Check if input is an instance ID (starts with "i-")
+  if [[ "$TARGET" == i-* ]]; then
+   INSTANCE_ID="$TARGET"
+  else
+   # Assume it's an IP address and look up the instance ID
+   INSTANCE_ID=$(aws ec2 describe-instances \
+     --filters "Name=private-ip-address,Values=$TARGET" \
+     --query "Reservations[].Instances[].InstanceId" \
+     --output text)
+   if [ -z "$INSTANCE_ID" ]; then
+     echo "Instance ID not found for IP $TARGET"
+     return 1
+   fi
+  fi
+  echo "Launching SSM port forwarding to $TARGET (Instance ID: $INSTANCE_ID) on port $PORT..."
+  aws ssm start-session \
+   --target "$INSTANCE_ID" \
+   --document-name AWS-StartPortForwardingSession \
+   --parameters "{\"portNumber\":[\"$PORT\"],\"localPortNumber\":[\"$LOCAL_PORT\"]}"
+}
+
+# kcc                      list contexts
+# kcc <cluster> <ns|->     switch to the context best matching <cluster>, then namespace
+# kcc - <ns>               switch namespace in the current context
+#
+# <cluster> is matched against every kubeconfig context, strongest tier first; the first
+# tier with any hit wins. More than one hit in that tier is an error, not a guess.
+#   1. exact context name
+#   2. last segment after / : _ @   (eks arn:.../NAME, gke_proj_zone_NAME, user@NAME)
+#   3. whole word, split on - . too (kind-NAME, NAME.example.com)
+#   4. substring
+# 2-4 are case-insensitive.
+kcc() {
+   if [ "$#" -ne 2 ]; then
+     kubectl config get-contexts --no-headers | sort
+     return
+   fi
+   if [ "$1" = "-" ]; then
+     kubectl config set-context --current --namespace="$2"
+     return
+   fi
+
+   local CONTEXTS MATCHES COUNT
+   # -o name gives one bare name per line; the table form misaligns on empty columns
+   CONTEXTS=$(kubectl config get-contexts -o name) || return 1
+   if [ -z "$CONTEXTS" ]; then
+     echo "kcc: no contexts in kubeconfig" >&2
+     return 1
+   fi
+   MATCHES=$(printf '%s\n' "$CONTEXTS" | _kcc_match "$1")
+   COUNT=$(printf '%s' "$MATCHES" | grep -c .)
+
+   if [ "$COUNT" -eq 0 ]; then
+     echo "kcc: no context matches '$1'. Contexts:" >&2
+     printf '%s\n' "$CONTEXTS" | sort | sed 's/^/  /' >&2
+     return 1
+   fi
+   if [ "$COUNT" -gt 1 ]; then
+     echo "kcc: '$1' is ambiguous, matches $COUNT contexts:" >&2
+     printf '%s\n' "$MATCHES" | sed 's/^/  /' >&2
+     return 1
+   fi
+
+   kubectl config use-context "$MATCHES" || return 1
+   if [ "$2" != "-" ]; then
+     kubectl config set-context --current --namespace="$2"
+   fi
+}
+
+# reads context names on stdin, prints those in the strongest non-empty match tier
+_kcc_match() {
+  # index() rather than ~ so the query is literal and needs no regex escaping
+  awk -v q="$1" '
+    function boundary(s, i, n,   before, after) {
+      before = (i == 1) ? "" : substr(s, i - 1, 1)
+      after  = substr(s, i + n, 1)
+      return (before == "" || before ~ /[\/:_@.-]/) && (after == "" || after ~ /[\/:_@.-]/)
+    }
+    function word(s, w,   i, off, n) {
+      n = length(w); off = 0
+      while ((i = index(substr(s, off + 1), w)) > 0) {
+        if (boundary(s, off + i, n)) return 1
+        off += i
+      }
+      return 0
+    }
+    BEGIN { lq = tolower(q) }
+    {
+      name = $0; lname = tolower(name)
+      last = lname; sub(/.*[\/:_@]/, "", last)
+      if (name == q)            t[1] = t[1] name "\n"
+      else if (last == lq)      t[2] = t[2] name "\n"
+      else if (word(lname, lq)) t[3] = t[3] name "\n"
+      else if (index(lname, lq)) t[4] = t[4] name "\n"
+    }
+    END { for (i = 1; i <= 4; i++) if (t[i] != "") { printf "%s", t[i]; exit } }
+  '
+}

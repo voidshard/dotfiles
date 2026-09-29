@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# grim grabs the wayland output, swaylock takes the blurred result as its image
+# `magick` is the imagemagick 7 entrypoint, `convert` is its deprecated alias
+PICTURE=/tmp/swaylock.png
+BLUR="5x4"
+
+grim "$PICTURE"
+magick "$PICTURE" -blur "$BLUR" "$PICTURE"
+swaylock -f -i "$PICTURE"
+rm "$PICTURE"

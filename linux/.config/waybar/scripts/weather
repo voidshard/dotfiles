@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# waybar custom/weather module, emits json (`man 5 waybar-custom`)
+#
+# Open-Meteo needs no API key and no account. The free tier is non-commercial and capped
+# at 10k calls/day; the 1800s interval in ~/.config/waybar/config works out at 48.
+# https://open-meteo.com/en/docs
+#
+# Nb. Open-Meteo has no severe-weather alerts, so the alert line the OpenWeather version
+# of this script rendered is gone. One Call 3.0 is the only keyed-but-alerting option if
+# that is ever wanted back.
+
+command -v jq >/dev/null 2>&1 || { echo >&2 "Program 'jq' required but it is not installed. Aborting."; exit 1; }
+command -v curl >/dev/null 2>&1 || { echo >&2 "Program 'curl' required but it is not installed. Aborting."; exit 1; }
+
+# Your latitude and longitude:
+LAT="XX.XXXX"
+LON="XX.XXXX"
+URL="https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=apparent_temperature,weather_code,is_day"
+
+WEATHER_RESPONSE=$(curl -fsS --max-time 10 "${URL}" 2>/dev/null)
+
+# bail out unless the response is well-formed: a captive portal or proxy page is not json,
+# and open-meteo errors carry `reason` instead of `current`. Without this the bar renders
+# "null°C" and jq spews parse errors into waybar's log.
+if ! jq -e '.current.weather_code' >/dev/null 2>&1 <<<"$WEATHER_RESPONSE"; then
+    jq -n -c '{text: "", alt: "", tooltip: "weather unavailable"}'
+    exit 0
+fi
+
+WEATHER_CODE=$(jq -r '.current.weather_code' <<<"$WEATHER_RESPONSE")
+WEATHER_TEMP=$(jq -r '.current.apparent_temperature' <<<"$WEATHER_RESPONSE")
+IS_DAY=$(jq -r '.current.is_day' <<<"$WEATHER_RESPONSE")
+
+# WMO 4677 codes, as tabulated at https://open-meteo.com/en/docs
+case "$WEATHER_CODE" in
+  0)  DESCRIPTION="clear sky"
+      [ "$IS_DAY" = "1" ] && WEATHER_ICON="" || WEATHER_ICON="" ;;
+  1)  DESCRIPTION="mainly clear"
+      [ "$IS_DAY" = "1" ] && WEATHER_ICON="" || WEATHER_ICON="" ;;
+  2)  DESCRIPTION="partly cloudy"
+      [ "$IS_DAY" = "1" ] && WEATHER_ICON="" || WEATHER_ICON="" ;;
+  3)  DESCRIPTION="overcast"
+      [ "$IS_DAY" = "1" ] && WEATHER_ICON="" || WEATHER_ICON="" ;;
+  45) DESCRIPTION="fog";                 WEATHER_ICON="🌫" ;;
+  48) DESCRIPTION="depositing rime fog"; WEATHER_ICON="🌫" ;;
+  51) DESCRIPTION="light drizzle"
+      [ "$IS_DAY" = "1" ] && WEATHER_ICON="" || WEATHER_ICON="" ;;
+  53) DESCRIPTION="moderate drizzle"
+      [ "$IS_DAY" = "1" ] && WEATHER_ICON="" || WEATHER_ICON="" ;;
+  55) DESCRIPTION="dense drizzle"
+      [ "$IS_DAY" = "1" ] && WEATHER_ICON="" || WEATHER_ICON="" ;;
+  56) DESCRIPTION="light freezing drizzle"
+      [ "$IS_DAY" = "1" ] && WEATHER_ICON="" || WEATHER_ICON="" ;;
+  57) DESCRIPTION="dense freezing drizzle"
+      [ "$IS_DAY" = "1" ] && WEATHER_ICON="" || WEATHER_ICON="" ;;
+  61) DESCRIPTION="slight rain";           WEATHER_ICON="" ;;
+  63) DESCRIPTION="moderate rain";         WEATHER_ICON="" ;;
+  65) DESCRIPTION="heavy rain";            WEATHER_ICON="" ;;
+  66) DESCRIPTION="light freezing rain";   WEATHER_ICON="" ;;
+  67) DESCRIPTION="heavy freezing rain";   WEATHER_ICON="" ;;
+  71) DESCRIPTION="slight snowfall";       WEATHER_ICON="" ;;
+  73) DESCRIPTION="moderate snowfall";     WEATHER_ICON="" ;;
+  75) DESCRIPTION="heavy snowfall";        WEATHER_ICON="" ;;
+  77) DESCRIPTION="snow grains";           WEATHER_ICON="" ;;
+  80) DESCRIPTION="slight rain showers";   WEATHER_ICON="" ;;
+  81) DESCRIPTION="moderate rain showers"; WEATHER_ICON="" ;;
+  82) DESCRIPTION="violent rain showers";  WEATHER_ICON="" ;;
+  85) DESCRIPTION="slight snow showers";   WEATHER_ICON="" ;;
+  86) DESCRIPTION="heavy snow showers";    WEATHER_ICON="" ;;
+  95) DESCRIPTION="thunderstorm";          WEATHER_ICON="" ;;
+  # hail is only reported by models that forecast it explicitly, eg DWD ICON and UKMO
+  96) DESCRIPTION="thunderstorm with slight hail"; WEATHER_ICON="" ;;
+  97) DESCRIPTION="heavy thunderstorm";            WEATHER_ICON="" ;;
+  99) DESCRIPTION="thunderstorm with heavy hail";  WEATHER_ICON="" ;;
+  *)  DESCRIPTION="unknown (code $WEATHER_CODE)";  WEATHER_ICON="🌫" ;;
+esac
+
+# jq builds the json so the description text is escaped for us
+jq -n -c --arg text "${WEATHER_ICON}  ${WEATHER_TEMP}°C: ${DESCRIPTION} " \
+         --arg alt "${WEATHER_TEMP}°C" \
+         --arg tooltip "${DESCRIPTION}" \
+    '{text: $text, alt: $alt, tooltip: $tooltip}'

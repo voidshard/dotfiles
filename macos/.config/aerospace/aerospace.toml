@@ -1,0 +1,156 @@
+# AeroSpace config, the macOS counterpart of ~/.config/sway/config
+# https://nikitabobko.github.io/AeroSpace/guide
+#
+# AeroSpace drives the macOS Accessibility API rather than owning the display, so some
+# sway bindings have no equivalent here; those are called out below.
+
+config-version = 2
+
+start-at-login = true
+
+# i3/sway workspaces are phantom: they exist only while they hold a window
+persistent-workspaces = []
+
+# normalizations rewrite the tree behind your back, which breaks `split` the way sway does it
+# https://nikitabobko.github.io/AeroSpace/guide#normalization
+enable-normalization-flatten-containers = false
+enable-normalization-opposite-orientation-for-nested-containers = false
+
+default-root-container-layout = 'tiles'
+default-root-container-orientation = 'auto'
+
+# matches `focus_follows_mouse no` in the sway config
+focus-follows-mouse.enabled = false
+
+key-mapping.preset = 'qwerty'
+
+on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
+
+# matches `gaps inner 2` / `gaps outer 2`
+gaps.inner.horizontal = 2
+gaps.inner.vertical = 2
+gaps.outer.left = 2
+gaps.outer.bottom = 2
+gaps.outer.top = 2
+gaps.outer.right = 2
+
+# floating rules, the counterpart of sway's `for_window [app_id=...] floating enable`
+# `aerospace list-apps` prints the bundle id of anything running
+on-window-detected = [
+    { if = 'test %{app-bundle-id} = com.apple.systempreferences', run = 'layout floating' },
+    { if = 'test %{app-bundle-id} = com.apple.ActivityMonitor', run = 'layout floating' },
+]
+
+[mode.main.binding]
+    # start a terminal
+    alt-enter = 'exec-and-forget open -na Alacritty'
+
+    # kill focused window
+    alt-q = 'close'
+
+    # lock the system (locks outright when "require password immediately" is set)
+    alt-l = 'exec-and-forget pmset displaysleepnow'
+
+    # reload the configuration file
+    # sway binds both of these; AeroSpace has no restart either
+    alt-shift-c = 'reload-config'
+    alt-shift-r = 'reload-config'
+
+    # change focus
+    alt-j = 'focus left'
+    alt-k = 'focus down'
+    alt-b = 'focus up'
+    alt-o = 'focus right'
+
+    # alternatively, you can use the cursor keys:
+    alt-left = 'focus left'
+    alt-down = 'focus down'
+    alt-up = 'focus up'
+    alt-right = 'focus right'
+
+    # move focused window
+    alt-shift-j = 'move left'
+    alt-shift-k = 'move down'
+    alt-shift-b = 'move up'
+    alt-shift-o = 'move right'
+
+    # alternatively, you can use the cursor keys:
+    alt-shift-left = 'move left'
+    alt-shift-down = 'move down'
+    alt-shift-up = 'move up'
+    alt-shift-right = 'move right'
+
+    # split in horizontal orientation
+    alt-h = 'split horizontal'
+
+    # split in vertical orientation
+    alt-v = 'split vertical'
+
+    # enter fullscreen mode for the focused container
+    alt-f = 'fullscreen'
+
+    # change container layout (stacked, tabbed, toggle split)
+    alt-s = 'layout v_accordion'
+    alt-g = 'layout h_accordion'
+    alt-e = 'layout tiles horizontal vertical'
+
+    # toggle tiling / floating
+    alt-shift-space = 'layout floating tiling'
+
+    # switch/iterate between workspaces
+    alt-tab = 'workspace --wrap-around next'
+    alt-shift-tab = 'workspace --wrap-around prev'
+
+    # switch to workspace
+    alt-1 = 'workspace 1'
+    alt-2 = 'workspace 2'
+    alt-3 = 'workspace 3'
+    alt-4 = 'workspace 4'
+    alt-5 = 'workspace 5'
+    alt-6 = 'workspace 6'
+    alt-7 = 'workspace 7'
+    alt-8 = 'workspace 8'
+    alt-9 = 'workspace 9'
+    alt-0 = 'workspace 10'
+
+    # move focused container to workspace
+    alt-shift-1 = 'move-node-to-workspace 1'
+    alt-shift-2 = 'move-node-to-workspace 2'
+    alt-shift-3 = 'move-node-to-workspace 3'
+    alt-shift-4 = 'move-node-to-workspace 4'
+    alt-shift-5 = 'move-node-to-workspace 5'
+    alt-shift-6 = 'move-node-to-workspace 6'
+    alt-shift-7 = 'move-node-to-workspace 7'
+    alt-shift-8 = 'move-node-to-workspace 8'
+    alt-shift-9 = 'move-node-to-workspace 9'
+    alt-shift-0 = 'move-node-to-workspace 10'
+
+    # resize mode
+    alt-r = 'mode resize'
+
+    ## App shortcuts
+    alt-w = 'exec-and-forget open -a Safari'
+    alt-n = 'exec-and-forget open -a Finder'
+
+    # Bindings with no AeroSpace equivalent, handled by macOS itself:
+    #   alt-d  app menu        -> Spotlight, which macos.sh rebinds from cmd-space to alt-d
+    #   alt-t  window menu     -> Mission Control (ctrl-up)
+    #   Print  screenshot      -> cmd-shift-3 / cmd-shift-4
+    #   alt-shift-e powermenu  -> the Apple menu
+    #   alt-space  focus floating/tiling and alt-a focus parent are unimplemented upstream
+    #     https://github.com/nikitabobko/AeroSpace/issues/5
+    #   media keys are handled by the keyboard's own F-row
+
+[mode.resize.binding]
+    j = 'resize width -50'
+    k = 'resize height +50'
+    b = 'resize height -50'
+    o = 'resize width +50'
+
+    left = 'resize width -50'
+    down = 'resize height +50'
+    up = 'resize height -50'
+    right = 'resize width +50'
+
+    enter = 'mode main'
+    esc = 'mode main'
