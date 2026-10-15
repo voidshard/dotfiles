@@ -106,16 +106,39 @@ PKGS=("${DESKTOP_PKGS[@]}" "${_filtered_user_apps[@]}")
 
 install_pkgs() {
   log "Installing desktop + user packages via pacman: ${#PKGS[@]} packages"
+
+  # Try to refresh package database first (best-effort)
   if [ "$(id -u)" -eq 0 ]; then
-    if ! pacman --needed -Syu --noconfirm "${PKGS[@]}"; then
-      log "pacman reported errors. Some packages may not be available in your Artix repos."
-      log "Consider enabling appropriate repos or using an AUR helper to build missing packages."
+    if ! pacman -Sy --noconfirm >/dev/null 2>&1; then
+      log "Warning: pacman -Sy failed or could not update DB; continuing anyway"
     fi
   else
-    if ! sudo pacman --needed -Syu --noconfirm "${PKGS[@]}"; then
-      log "pacman reported errors. Some packages may not be available in your Artix repos."
-      log "Consider enabling appropriate repos or using an AUR helper to build missing packages."
+    if ! sudo pacman -Sy --noconfirm >/dev/null 2>&1; then
+      log "Warning: sudo pacman -Sy failed or could not update DB; continuing anyway"
     fi
+  fi
+
+  local failed=()
+  for pkg in "${PKGS[@]}"; do
+    log "Installing: $pkg"
+    if [ "$(id -u)" -eq 0 ]; then
+      if ! pacman --needed -S --noconfirm "$pkg" >/dev/null 2>&1; then
+        log "ERROR: failed to install $pkg"
+        failed+=("$pkg")
+      fi
+    else
+      if ! sudo pacman --needed -S --noconfirm "$pkg" >/dev/null 2>&1; then
+        log "ERROR: failed to install $pkg"
+        failed+=("$pkg")
+      fi
+    fi
+  done
+
+  if [ "${#failed[@]}" -ne 0 ]; then
+    log "The following packages failed to install: ${failed[*]}"
+    log "They may not be available in your configured repos. Consider enabling appropriate repos or using an AUR helper."
+  else
+    log "All packages installed or already present"
   fi
 }
 
