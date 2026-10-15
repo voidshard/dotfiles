@@ -101,13 +101,14 @@ for u in "${USER_APPS[@]}"; do
   $skip || _filtered_user_apps+=("$u")
 done
 
-# Merge final package list
-PKGS=("${DESKTOP_PKGS[@]}" "${_filtered_user_apps[@]}")
+install_group() {
+  local name="$1"
+  shift
+  local pkgs=("$@")
 
-install_pkgs() {
-  log "Installing desktop + user packages via pacman: ${#PKGS[@]} packages"
+  log "Installing ${name} packages via pacman: ${#pkgs[@]} packages"
 
-  # Try to refresh package database first (best-effort)
+  # Update DB first (best-effort)
   if [ "$(id -u)" -eq 0 ]; then
     if ! pacman -Sy --noconfirm >/dev/null 2>&1; then
       log "Warning: pacman -Sy failed or could not update DB; continuing anyway"
@@ -118,27 +119,24 @@ install_pkgs() {
     fi
   fi
 
-  local failed=()
-  for pkg in "${PKGS[@]}"; do
-    log "Installing: $pkg"
-    if [ "$(id -u)" -eq 0 ]; then
-      if ! pacman --needed -S --noconfirm "$pkg" >/dev/null 2>&1; then
-        log "ERROR: failed to install $pkg"
-        failed+=("$pkg")
-      fi
-    else
-      if ! sudo pacman --needed -S --noconfirm "$pkg" >/dev/null 2>&1; then
-        log "ERROR: failed to install $pkg"
-        failed+=("$pkg")
-      fi
+  if [ "$(id -u)" -eq 0 ]; then
+    if ! pacman --needed -Syu --noconfirm "${pkgs[@]}" >/dev/null 2>&1; then
+      log "Warning: some ${name} packages failed to install (they may be missing from repos). Continuing."
     fi
-  done
-
-  if [ "${#failed[@]}" -ne 0 ]; then
-    log "The following packages failed to install: ${failed[*]}"
-    log "They may not be available in your configured repos. Consider enabling appropriate repos or using an AUR helper."
   else
-    log "All packages installed or already present"
+    if ! sudo pacman --needed -Syu --noconfirm "${pkgs[@]}" >/dev/null 2>&1; then
+      log "Warning: some ${name} packages failed to install (they may be missing from repos). Continuing."
+    fi
+  fi
+}
+
+install_pkgs() {
+  install_group "desktop" "${DESKTOP_PKGS[@]}"
+  # install filtered user apps only if any
+  if [ "${#_filtered_user_apps[@]}" -gt 0 ]; then
+    install_group "user" "${_filtered_user_apps[@]}"
+  else
+    log "No user apps to install (all covered by desktop packages)"
   fi
 }
 
