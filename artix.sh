@@ -27,37 +27,85 @@ if ! command -v git >/dev/null 2>&1; then
   fi
 fi
 
-# Packages we will install. Each package here either appears in archlinux.sh
-# from this repo or was explicitly requested (hyprland, wayland).
-PKGS=(
-  # explicitly requested
-  wayland
+# Desktop tools (from the dotfiles) — these power the Hyprland + Quickshell setup
+DESKTOP_PKGS=(
   hyprland
-
-  # from archlinux.sh
-  git
-  curl
-  wget
-  fzf
-  htop
-  neovim
-  zsh
-  imv
+  hyprpaper
+  hyprpicker
+  hyprlock
+  hypridle
+  hyprsunset
+  hyprmod
+  nwg-dock-hyprland
+  matugen
+  wayland
+  wayland-protocols
   wl-clipboard
-  pavucontrol
-  xdg-desktop-portal-wlr
+  xdg-desktop-portal-hyprland
   xorg-xwayland
+  wlroots
+
+  # helper/utilities used by the dotfiles
+  jq
+  socat
+  rsync
+  zoxide
+  cava
+  awww
+  gammastep
   brightnessctl
   playerctl
-  waybar
-  dunst
   rofi
+  dunst
+  mako
   grim
   slurp
 )
 
+# User applications (install unless already provided by DESKTOP_PKGS)
+USER_APPS=(
+  neovim
+  fzf
+  curl
+  git
+  htop
+  nodejs
+  golang
+  sqlitebrowser
+  tiled
+  zsh
+  discord
+  podman
+  nmap
+  tmux
+  thunderbird
+  python3-neovim
+  pass
+  steam
+  python3-pip
+  gimp
+  unzip
+  obsidian
+)
+
+# Filter USER_APPS to remove packages already in DESKTOP_PKGS
+_filtered_user_apps=()
+for u in "${USER_APPS[@]}"; do
+  skip=false
+  for d in "${DESKTOP_PKGS[@]}"; do
+    if [ "$u" = "$d" ]; then
+      skip=true
+      break
+    fi
+  done
+  $skip || _filtered_user_apps+=("$u")
+done
+
+# Merge final package list
+PKGS=("${DESKTOP_PKGS[@]}" "${_filtered_user_apps[@]}")
+
 install_pkgs() {
-  log "Installing packages via pacman: ${#PKGS[@]} packages"
+  log "Installing desktop + user packages via pacman: ${#PKGS[@]} packages"
   if [ "$(id -u)" -eq 0 ]; then
     if ! pacman --needed -Syu --noconfirm "${PKGS[@]}"; then
       log "pacman reported errors. Some packages may not be available in your Artix repos."
