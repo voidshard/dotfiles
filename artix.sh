@@ -151,13 +151,36 @@ else
   esac
 fi
 
-# Bootstrap ml4w dotfiles using the repo-local helper (ml4w.sh)
-if [ -x "$repo_root/ml4w.sh" ]; then
-  log "Bootstrapping ml4w dotfiles using $repo_root/ml4w.sh"
-  (bash "$repo_root/ml4w.sh")
+# Bootstrap ml4w dotfiles (inlined from ml4w.sh)
+repo_ml4w_url="https://github.com/yurihikari/ml4w-lightcrimson-dotfiles.git"
+repo_ml4w_dest="${HOME}/.ml4w-lightcrimson-dotfiles"
+
+log "Bootstrapping ml4w dotfiles: cloning $repo_ml4w_url into $repo_ml4w_dest"
+
+if ! command -v git >/dev/null 2>&1; then
+  log "Error: git is required to clone ml4w dotfiles but is not installed. Skipping ml4w bootstrap."
 else
-  log "ml4w.sh helper not found or not executable in $repo_root"
-  log "Run the ml4w installer manually: $repo_root/ml4w.sh"
+  # Clone or update
+  if [ -d "$repo_ml4w_dest/.git" ]; then
+    log "Destination already exists. Updating repository..."
+    git -C "$repo_ml4w_dest" fetch --depth=1 || true
+    if ! git -C "$repo_ml4w_dest" reset --hard origin/HEAD >/dev/null 2>&1; then
+      git -C "$repo_ml4w_dest" pull --rebase --autostash || true
+    fi
+  else
+    git clone --depth=1 "$repo_ml4w_url" "$repo_ml4w_dest" || log "Warning: git clone of ml4w repo failed"
+  fi
+
+  # Ensure the install script is executable and run it
+  if [ -f "$repo_ml4w_dest/install.sh" ]; then
+    if [ ! -x "$repo_ml4w_dest/install.sh" ]; then
+      chmod +x "$repo_ml4w_dest/install.sh" || true
+    fi
+    log "Running install.sh from $repo_ml4w_dest"
+    bash "$repo_ml4w_dest/install.sh" || log "Warning: ml4w install.sh failed"
+  else
+    log "Error: install.sh not found in $repo_ml4w_dest"
+  fi
 fi
 
 # Copy base/linux configs if present (these come from this repository)
